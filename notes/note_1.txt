@@ -1,0 +1,23 @@
+
+
+The dependency system for EOEPCA projects has been changed. We have moved from a model git submodules to
+CMAKE ExternalProject (https://cmake.org/cmake/help/v3.0/module/ExternalProject.html).
+
+This solution allows us to include dependency using CMAKE directives only.
+The SystemBuilder will take care of downloading the repository, synchronizing and connecting the remote project to the local.
+
+cmake_minimum_required(VERSION 3.5)
+project(eoepcaows NONE)
+include(ExternalProject)
+ExternalProject_Add(eoepcaows
+        GIT_REPOSITORY    https://github.com/EOEPCA/proc-comm-lib-ows.git
+        GIT_TAG           master
+        SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/proc-comm-lib-ows"
+        BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/proc-comm-lib-ows-build"
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND     ""
+        INSTALL_COMMAND   ""
+        TEST_COMMAND      ""
+)
+
+
