@@ -15,8 +15,13 @@ SET(MAIN_SRC
         )
 
 
+SET(MODS_LIBS
+        z m dl
+        )
+
+
 add_executable(xxxx ${MAIN_SRC})
-TARGET_LINK_LIBRARIES(xxxx)
+TARGET_LINK_LIBRARIES(xxxx ${MODS_LIBS})
 
 
 
