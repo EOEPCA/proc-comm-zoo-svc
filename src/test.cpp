@@ -54,7 +54,7 @@ int main(int argc, const char **argv) {
 
           for (auto &zoo : single->getZoos()) {
 
-            std::cout << "Identifier: \n" << zoo->getIdentifier() << "\n";
+            std::cout << "Identifier: " << zoo->getIdentifier() << "\n";
             std::cout << "Config: \n"<< zoo->getConfigFile() << "\n";
 
           }

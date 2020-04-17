@@ -21,7 +21,7 @@ class Zoo {
   void setConfigFile(const std::string &configFile);
 
   const std::string &getIdentifier() const;
-  void setIdentifier(const std::string &identifier);
+  void setIdentifier(std::string identifier);
 };
 
 class ZooApplication {
