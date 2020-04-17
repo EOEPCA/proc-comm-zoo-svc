@@ -1,0 +1,12 @@
+void StringUtil::filterLines(std::string& value, std::string filter,
+                             std::stringbuf& buffer) {
+  std::istringstream iss(value);
+  std::ostream os(&buffer);
+
+  std::string line;
+  while (std::getline(iss, line)) {
+    if (line.find(filter) != std::string::npos) os << line << std::endl;
+  }
+
+  iss.seekg(0);
+}

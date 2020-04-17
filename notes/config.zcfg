@@ -1,0 +1,115 @@
+[i260bd70ebfe15dce8e13b57b2cd643b1e5411b4a]
+       Title = [coordinator] STEMP-S2 Full
+        Abstract = [coordinator] ERUPTIVE HOT SPOT detection obtained by multi-spectral optical sensors (Sentinel-2 ) generated in GeoTIFF format
+        processVersion = 1.0.0
+        storeSupported = true
+        statusSupported = true
+        serviceType = C
+        serviceProvider =  i260bd70ebfe15dce8e13b57b2cd643b1e5411b4a.zo
+<MetaData>
+        idDeploy = i260bd70ebfe15dce8e13b57b2cd643b1e5411b4a
+        idApplication =
+        community =
+        artifactId =
+        version=
+        WorkflowResource = f0166576-78e0-11ea-b207-0a580a800625
+        workflowId =
+        workflowVersion =
+        type = application
+        owsContext = /ows/i260bd70ebfe15dce8e13b57b2cd643b1e5411b4a.xml
+</MetaData>
+<DataInputs>
+        [_T2Username]
+        Title = User name
+        Abstract = Valid usernames
+        minOccurs = 1
+        maxOccurs = 1
+        <LiteralData>
+                dataType = string
+                <Default>
+                </Default>
+        </LiteralData>
+</DataInputs>
+
+<DataInputs>
+        [_T2Apikey]
+        Title = User Api key
+        Abstract = Valid user's Api key
+        minOccurs = 1
+        maxOccurs = 1
+        <LiteralData>
+                dataType = string
+                <Default>
+                        value = asdasdasjhasfasfgdsjfgasdjgfasdkgsdkhdsfkasfksaå
+                </Default>
+        </LiteralData>
+</DataInputs>
+
+<DataInputs>
+        [_T2JobInfoFeed]
+        Title = Job Info Atom Feed
+        Abstract = Atom Feed containing information about the WPS job
+        minOccurs = 0
+        maxOccurs = 1
+        <LiteralData>
+                dataType = string
+                <Default>
+                        value = asdasdasjhasfasfgdsjfgasdjgfasdkgsdkhdsfkasfksaå
+                </Default>
+        </LiteralData>
+</DataInputs>
+
+<DataInputs>
+        [_T2ResultsAnalysis]
+        Title = Results Analysis
+        Abstract = Terradue results analysis system
+        minOccurs = 0
+        maxOccurs = 1
+        <LiteralData>
+                dataType = string
+                AllowedValues = skip,basic,intermediate,advanced,extended
+                <Default>
+                        value = basic
+                </Default>
+        </LiteralData>
+</DataInputs>
+
+<DataOutputs>
+        [result_osd]
+        Title = OpenSearch Description to the Results
+        Abstract = OpenSearch Description to the Results
+<ComplexOutput>
+        <Default>
+                MimeType = application/opensearchdescription+xml
+        </Default>
+        <Supported>
+                MimeType = application/opensearchdescription+xml
+        </Supported>
+</ComplexOutput>
+</DataOutputs>
+<DataOutputs>
+        [job_ows]
+        Title = Job OWS info
+        Abstract = Wps job info as OWS Context (T2 internal)
+<ComplexOutput>
+        <Default>
+                MimeType = application/atom+xml
+        </Default>
+        <Supported>
+                MimeType = application/atom+xml
+        </Supported>
+</ComplexOutput>
+</DataOutputs>
+<DataOutputs>
+        [t2_logs]
+        Title = Job Logs
+        Abstract = Application's logs
+<ComplexOutput>
+        <Default>
+                MimeType = application/json
+        </Default>
+        <Supported>
+                MimeType = application/json
+        </Supported>
+</ComplexOutput>
+</DataOutputs>

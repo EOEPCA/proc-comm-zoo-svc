@@ -37,6 +37,6 @@ cmake-build*
 *.swp
 .project*
 tags
-
+notes
 build
 

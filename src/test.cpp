@@ -1,4 +1,5 @@
 
+
 #include <eoepca/owl/eoepcaows.hpp>
 #include <eoepca/owl/owsparameter.hpp>
 #include <functional>
@@ -7,57 +8,63 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <web/httpfuntions.hpp>
+#include <zoo/zooconverter.hpp>
 
 int main(int argc, const char **argv) {
-  if (argc == 1) {
-    std::cerr << "arg1: ows file path";
-    return 1;
-  }
+  try {
+    std::string buffer;
+    auto ret =
+        getFromWeb(buffer,
+                   "https://catalog.terradue.com/eoepca-apps/"
+                   "search?format=atom&uid=application_package_sample_app");
 
-  // build *inix
-  auto lib = std::make_unique<EOEPCA::EOEPCAows>(
-      "/Users/rdirienzo/Project/EOEPCA/proc-comm-zoo-svc/cmake-build-debug/3ty/"
-      "proc-comm-lib-ows/proc-comm-lib-ows-build/libeoepcaows.dylib");
-  if (!lib->IsValid()) {
-    // build mac
-    lib = std::make_unique<EOEPCA::EOEPCAows>(
-        "/Users/rdirienzo/Project/EOEPCA/proc-comm-zoo-svc/cmake-build-debug/"
-        "3ty/proc-comm-lib-ows/proc-comm-lib-ows-build/libeoepcaows.dylib");
-  }
+    if (ret == 200) {
+      auto lib = std::make_unique<EOEPCA::EOEPCAows>(
+          "/Users/rdirienzo/Project/EOEPCA/proc-comm-zoo-svc/cmake-build-debug/"
+          "3ty/"
+          "proc-comm-lib-ows/proc-comm-lib-ows-build/libeoepcaows.dylib");
+      if (!lib->IsValid()) {
+        // build mac
+        lib = std::make_unique<EOEPCA::EOEPCAows>(
+            "/Users/rdirienzo/Project/EOEPCA/proc-comm-zoo-svc/"
+            "cmake-build-debug/"
+            "3ty/proc-comm-lib-ows/proc-comm-lib-ows-build/libeoepcaows.dylib");
+      }
 
-  std::cout << "LIB version: " << lib->version() << "\n";
-  int maxLen = 1024;
-  auto theName = std::make_unique<char[]>(maxLen);
-  lib->getParserName(theName.get(), maxLen);
+      if (!lib->IsValid()) {
+        std::cerr << "can't load libeoepcaows \n";
 
-  std::cout << "LIB name: " << theName.get() << "\n";
-  std::cout << "Run: \n";
+        return 199;
+      }
 
-  std::unique_ptr<EOEPCA::OWS::OWSContext,
-                  std::function<void(EOEPCA::OWS::OWSContext *)>>
-      ptrContext(lib->parseFromFile(argv[1]), lib->releaseParameter);
+      std::unique_ptr<EOEPCA::OWS::OWSContext,
+                      std::function<void(EOEPCA::OWS::OWSContext *)>>
+          ptrContext(lib->parseFromMemory(buffer.c_str(), buffer.size()),
+                     lib->releaseParameter);
 
-  if (ptrContext) {
-    for (auto &theParams : ptrContext->getEntries()) {
-      std::cout << "********************************\n";
-      std::cout << theParams->getPackageIdentifier() << "\n";
+      if (ptrContext) {
+        auto converter = std::make_unique<ZOO::ZooConverter>();
+        auto out = converter->convert(ptrContext.get());
 
-      for (auto &off : theParams->getOfferings()) {
-        for (auto &y : off->getContents()) {
-          std::cout << "\t" << y.code << " " << y.href << "\n";
-        }
+        for (auto &single : out) {
+          std::cout << "code: " << single->getCode() << "\n";
+          std::cout << "cwlUri: " << single->getCwlUri() << "\n";
+          std::cout << "dockerRef: " << single->getDockerRef() << "\n";
 
-        for (auto &proc : off->getProcessDescription()) {
-          std::cout << proc->getIdentifier() << "\n";
-          std::cout << proc->getTitle() << "\n";
-          std::cout << proc->getAbstract() << "\n";
+          for (auto &zoo : single->getZoos()) {
 
-          std::cout << "theParams SIZE INPUT: " << proc->getInputs().size()
-                    << "\n";
-          std::cout << "theParams SIZE OUTPUT: " << proc->getOutputs().size();
+            std::cout << "Identifier: \n" << zoo->getIdentifier() << "\n";
+            std::cout << "Config: \n"<< zoo->getConfigFile() << "\n";
+
+          }
         }
       }
+    } else {
+      std::cerr << "can't download file!\n";
     }
+  } catch (std::runtime_error &e) {
+    std::cerr << e.what() << "\n";
   }
 
   return 0;

@@ -25,6 +25,7 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
     include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
+#SET(PROC_COMM_ZOO_SVC_INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/3ty/proc-comm-lib-ows/proc-comm-lib-ows/includes  PARENT_SCOPE)
 
 
 
