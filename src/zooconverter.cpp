@@ -26,8 +26,8 @@ void prepareInfos(std::ostream& os, EOEPCA::OWS::Param* param) {
     os << "\tTitle = " << param->getTitle() << "\n";
     os << "\tAbstract = " << param->getAbstract() << "\n";
 
-    os << "\tminOccurs =" << param->getMinOccurs() << "\n";
-    os << "\tmaxOccurs =" << param->getMaxOccurs() << "\n";
+    os << "\tminOccurs = " << param->getMinOccurs() << "\n";
+    os << "\tmaxOccurs = " << param->getMaxOccurs() << "\n";
   }
 }
 
@@ -44,6 +44,32 @@ std::string parseParam<EOEPCA::OWS::BoundingBoxData>(
   prepareInfos(os, param);
 
   os << "\t<BoundingBoxData>\n";
+
+  if (param->getSupported().empty()) {
+    os << "\t\t<Default>\n";
+    os << "\t\t\tCRS = urn:ogc:def:crs:EPSG:6.6:4326\n";
+    os << "\t\t</Default>\n";
+
+    os << "\t\t<Supported>\n";
+    os << "\t\t\tCRS = urn:ogc:def:crs:EPSG:6.6:4326\n";
+    os << "\t\t</Supported>\n";
+
+  } else {
+    for (auto& sup : param->getSupported()) {
+      os << "\t\t<Supported>\n";
+      os << "\t\t\tCRS = " << sup << "\n";
+      os << "\t\t</Supported>\n";
+    }
+  }
+
+  if (!param->getDefaultValue().empty()) {
+    os << "\t\t<Default>\n";
+    os << "\t\t\tCRS = " << param->getDefaultValue() << "\n";
+    os << "\t\t</Default>\n";
+
+  } else {
+    os << "\t\t<Default />\n";
+  }
   os << "\t</BoundingBoxData>\n";
 
   return buffer.str();
@@ -62,6 +88,31 @@ std::string parseParam<EOEPCA::OWS::LiteralData>(
   prepareInfos(os, param);
 
   os << "\t<LiteralData>\n";
+  os << "\t\tdataType = " << param->getDataType() << "\n";
+  if (!param->getAllowedValues().empty()) {
+    os << "\t\tAllowedValues = ";
+
+    bool isFirst = true;
+    for (auto& allow : param->getAllowedValues()) {
+      if (isFirst)
+        isFirst = false;
+      else
+        os << ",";
+      os << allow;
+    }
+
+    os << "\n";
+  }
+
+  auto def = param->getDefaultValue();
+  if (def.empty()) {
+    os << "\t\t<Default />\n";
+  } else {
+    os << "\t\t<Default>\n";
+    os << "\t\tvalue = " << def << "\n";
+    os << "\t\t</Default>\n";
+  };
+
   os << "\t</LiteralData>\n";
 
   return buffer.str();
@@ -79,7 +130,49 @@ std::string parseParam<EOEPCA::OWS::ComplexData>(
 
   prepareInfos(os, param);
 
+  if (param->getMaximumMegabytes() > 0) {
+    os << "\tmaximumMegabytes = " << param->getMaximumMegabytes() << "\n";
+  }
+
   os << "\t<ComplexData>\n";
+
+  if (!param->getSupported().empty()) {
+    for (auto& supp : param->getSupported()) {
+      os << "\t\t<Supported>\n";
+
+      if (!supp->getMimeType().empty())
+        os << "\t\t\tmimeType = " << supp->getMimeType() << "\n";
+
+      if (!supp->getEncoding().empty())
+        os << "\t\t\tencoding = " << supp->getEncoding() << "\n";
+
+      if (!supp->getSchema().empty())
+        os << "\t\t\tschema =   " << supp->getSchema() << "\n";
+
+      os << "\t\t</Supported>\n";
+    }
+  }
+
+  if (!param->getDefaultSupported()) {
+    os << "\t\t<Default>\n";
+
+    if (!param->getDefaultSupported()->getMimeType().empty())
+      os << "\t\t\tmimeType = " << param->getDefaultSupported()->getMimeType()
+         << "\n";
+
+    if (!param->getDefaultSupported()->getEncoding().empty())
+      os << "\t\t\tencoding = " << param->getDefaultSupported()->getEncoding()
+         << "\n";
+
+    if (!param->getDefaultSupported()->getSchema().empty())
+      os << "\t\t\tschema = " << param->getDefaultSupported()->getSchema()
+         << "\n";
+
+    os << "\t\t</Default>\n";
+  } else {
+    os << "\t\t<Default>\n\t\t</Default>\n";
+  }
+
   os << "\t</ComplexData>\n";
 
   return buffer.str();
