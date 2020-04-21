@@ -41,7 +41,7 @@ if (ZOOBUILD)
 
     add_library(epcatransactional SHARED ${LIB_SRC})
     TARGET_LINK_LIBRARIES(epcatransactional /work/build/libzooconverter.a ${CURL_LIBRARIES} zoo_service ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES} ${MODS_LIBS} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
-#
+    #
 
     install(TARGETS epcatransactional DESTINATION /work/zooservices/)
 
@@ -65,12 +65,13 @@ else ()
     include_directories(includes)
 
 
-    SET(LIB_SRC src/zooconverter.cpp includes/zoo/zooconverter.hpp)
+    SET(LIB_SRC src/zooconverter.cpp includes/zoo/zooconverter.hpp
+            src/sha1.cpp
+            )
 
 
     SET(MAIN_SRC
             src/test.cpp
-            src/sha1.cpp
             )
 
 

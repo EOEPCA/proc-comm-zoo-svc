@@ -16,7 +16,8 @@ rm -fvR build ${ZOO_BUILD_SERVICE} ${ZOO_ZOOSERVICES}
 
 
 ls -ltr
-read
+echo "Press enter to continue!"
+#read
 
 #donload and build
 docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} cmake -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" ..

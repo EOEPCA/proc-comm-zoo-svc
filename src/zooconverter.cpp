@@ -345,7 +345,17 @@ const std::list<std::string>& ZooJob::getOutputs() const { return outputs; }
 std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
     const std::list<std::string>& uniqueTags,
     EOEPCA::OWS::OWSContext* owsContext) {
+  return convert(uniqueTags, owsContext,
+                 std::list<std::pair<std::string, std::string>>());
+}
+
+std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
+    const std::list<std::string>& uniqueTags,
+    EOEPCA::OWS::OWSContext* owsContext,
+    const std::list<std::pair<std::string, std::string>>& metadata) {
   std::list<std::unique_ptr<ZooApplication>> all;
+
+  //  ;
 
   for (auto& entry : owsContext->getEntries()) {
     for (auto& offer : entry->getOfferings()) {
@@ -368,6 +378,11 @@ std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
         zooJob->setAbstract(processDescription->getAbstract());
         zooJob->setIdentifier(processDescription->getIdentifier());
         zooJob->setProcessVersion(processDescription->getVersion());
+
+        for (auto& [k, v] : metadata) {
+          zooJob->addMetadata(k, v);
+        }
+        zooJob->addMetadata("cwl", zooApplication->getCwlUri());
 
         auto zooConfig = std::make_unique<Zoo>();
         zooConfig->setIdentifier(std::move(zooJob->getUniqueService()));
