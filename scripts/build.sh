@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+docker stop zoo
+
+export DOCKER_ZOO='eoepca/proc-comm-zoo:latest'
+export ZOO_BUILD_SERVICE='zoo_build_services'
+export ZOO_ZOOSERVICES='zooservices'
+export LOCAL_DOCKERIMAGE='eoepca/eoepca-build-cpp:1.0'
+export CMAKERELEASE='Release'
+export EOEPCA_ZOO='eoepcaadeswps:1.0'
+
+# remove directories
+rm -fvR build ${ZOO_BUILD_SERVICE} ${ZOO_ZOOSERVICES}
+
+# enviroments
+
+#donload and build
+docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} cmake -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" ..
+docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} make eoepcaows  all
+
+mkdir -p  ${ZOO_BUILD_SERVICE}
+
+#use ZOO Docker
+docker pull ${DOCKER_ZOO}
+
+mkdir -p  ${ZOO_ZOOSERVICES}
+cp src/zoo/*.zcfg ${ZOO_ZOOSERVICES}/
+
+
+#docker build --rm -t eoepcaadeswps:1.0 .
+docker build --rm -t ${EOEPCA_ZOO} .
+docker run -d --rm --name zoo -p 7777:80 -v  $PWD/zooservices:/zooservices ${EOEPCA_ZOO}
+
+
+#docker run  --rm  -v $PWD/src/zoo;/work ${DOCKER_ZOO} cmake -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" .
+
+#curl -s -L  "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=GetCapabilities"
+#curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesdeployprocess"
+#curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesdeployprocess&dataInputs=applicationPackage=IW;&ResponseDocument=debug@mimeType=text/plain;deployResult@mimeType=application/xml"
+
+
+#curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesundeployprocess"
+#curl -L  "https://localhost/zoo/?service=wps&version=1.0.0&request=Execute&identifier=TerradueDeployProcess&dataInputs=coordinator=False;&ResponseDocument=deployResult@mimeType=application/xml
+
+
+
