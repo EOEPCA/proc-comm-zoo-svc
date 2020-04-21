@@ -2,6 +2,7 @@
 
 docker stop zoo
 
+# enviroments
 export DOCKER_ZOO='eoepca/proc-comm-zoo:latest'
 export ZOO_BUILD_SERVICE='zoo_build_services'
 export ZOO_ZOOSERVICES='zooservices'
@@ -12,11 +13,18 @@ export EOEPCA_ZOO='eoepcaadeswps:1.0'
 # remove directories
 rm -fvR build ${ZOO_BUILD_SERVICE} ${ZOO_ZOOSERVICES}
 
-# enviroments
+
+
+ls -ltr
+read
 
 #donload and build
 docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} cmake -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" ..
 docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} make eoepcaows  all
+
+echo "Run tests"
+./build/test/libtest-test-zooparser
+
 
 mkdir -p  ${ZOO_BUILD_SERVICE}
 
@@ -31,7 +39,7 @@ docker build --rm -t ${EOEPCA_ZOO} .
 docker run -d --rm --name zoo -p 7777:80 -v  $PWD/zooservices:/zooservices ${EOEPCA_ZOO}
 
 docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} cmake3 -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" -DZOOBUILD=On  ..
-docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make
+docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make install
 
 
 #mv zoo_build_services/libaaaa.so zooservices/eoepcaadesdeployprocess.zo

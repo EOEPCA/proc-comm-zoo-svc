@@ -40,8 +40,8 @@ if (ZOOBUILD)
 
 
     add_library(epcatransactional SHARED ${LIB_SRC})
-    TARGET_LINK_LIBRARIES(epcatransactional ${CURL_LIBRARIES} zoo_service ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES} ${MODS_LIBS} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
-
+    TARGET_LINK_LIBRARIES(epcatransactional /work/build/libzooconverter.a ${CURL_LIBRARIES} zoo_service ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES} ${MODS_LIBS} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
+#
 
     install(TARGETS epcatransactional DESTINATION /work/zooservices/)
 
@@ -52,7 +52,7 @@ else ()
 
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_MACOSX_RPATH OFF)
-
+    set(CMAKE_CXX_FLAGS "-fPIC")
 
     find_package(CURL REQUIRED)
     include_directories(${CURL_INCLUDE_DIRS})
@@ -83,6 +83,8 @@ else ()
     add_executable(xxxx ${MAIN_SRC})
     TARGET_LINK_LIBRARIES(xxxx zooconverter ${MODS_LIBS} ${CURL_LIBRARIES})
 
+
+    add_subdirectory(test)
 
 endif ()
 
