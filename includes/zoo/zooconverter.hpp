@@ -50,7 +50,8 @@ class ZooConverter {
   ZooConverter() = default;
   virtual ~ZooConverter() = default;
 
-  std::list<std::unique_ptr<ZooApplication>> convert(EOEPCA::OWS::OWSContext *);
+
+  std::list<std::unique_ptr<ZooApplication>> convert(const std::list<std::string>& ,EOEPCA::OWS::OWSContext *);
 };
 
 }  // namespace ZOO

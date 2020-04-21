@@ -70,6 +70,7 @@ else ()
 
     SET(MAIN_SRC
             src/test.cpp
+            src/sha1.cpp
             )
 
 

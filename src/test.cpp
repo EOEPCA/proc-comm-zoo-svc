@@ -44,8 +44,14 @@ int main(int argc, const char **argv) {
                      lib->releaseParameter);
 
       if (ptrContext) {
+
+        std::list<std::string> uniqueTags{};
+        uniqueTags.emplace_back("cacsa");
+        uniqueTags.emplace_back("cacs2a");
+        uniqueTags.emplace_back("cacs4a");
+
         auto converter = std::make_unique<ZOO::ZooConverter>();
-        auto out = converter->convert(ptrContext.get());
+        auto out = converter->convert(uniqueTags,ptrContext.get());
 
         for (auto &single : out) {
           std::cout << "code: " << single->getCode() << "\n";

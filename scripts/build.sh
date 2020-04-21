@@ -41,13 +41,13 @@ docker run -d --rm --name zoo -p 7777:80 -v  $PWD/zooservices:/zooservices ${EOE
 docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} cmake3 -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" -DZOOBUILD=On  ..
 docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make install
 
-
 #mv zoo_build_services/libaaaa.so zooservices/eoepcaadesdeployprocess.zo
 
 #curl -s -L  "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=GetCapabilities"
 #curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesdeployprocess"
-#curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesdeployprocess&dataInputs=applicationPackage=IW;&ResponseDocument=debug@mimeType=text/plain;deployResult@mimeType=application/xml"
 
+#curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesdeployprocess&dataInputs=applicationPackage=https%3A%2F%2Fcatalog.terradue.com%2Feoepca-apps%2Fsearch%3Fformat%3Datom%26uid%3Dapplication_package_sample_app;&ResponseDocument=debug@mimeType=text/plain;deployResult@mimeType=application/xml"
+#docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make install && curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesdeployprocess&dataInputs=applicationPackage=https%3A%2F%2Fcatalog.terradue.com%2Feoepca-apps%2Fsearch%3Fformat%3Datom%26uid%3Dapplication_package_sample_app;&ResponseDocument=debug@mimeType=text/plain;deployResult@mimeType=application/xml"
 
 #curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesundeployprocess"
 #curl -L  "https://localhost/zoo/?service=wps&version=1.0.0&request=Execute&identifier=TerradueDeployProcess&dataInputs=coordinator=False;&ResponseDocument=deployResult@mimeType=application/xml

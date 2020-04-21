@@ -11,10 +11,13 @@ SET(MODS_LIBS
         )
 
 SET(LIB_TEST_NAME
-    libtest-test-zooparser
-)
+    libtest-test-zooparser)
 
-add_executable(${LIB_TEST_NAME} ${test_sources})
+SET(SHA1S      ../includes/utils/sha1.hpp
+        ../src/sha1.cpp)
+
+
+add_executable(${LIB_TEST_NAME} ${test_sources} ${SHA1S})
 target_link_libraries(${LIB_TEST_NAME} ${MODS_LIBS} gtest_main)
 add_test(NAME zooparser_test_run COMMAND ${LIB_TEST_NAME})
 

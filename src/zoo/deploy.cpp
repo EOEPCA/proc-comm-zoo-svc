@@ -34,63 +34,68 @@ ZOO_DLL_EXPORT int eoepcaadesdeployprocess(maps*& conf, maps*& inputs,
   std::map<std::string, std::string> confMain;
   getT2ConfigurationFromZooMapConfig(conf, "confMain", confMain);
 
-  std::string buffer;
-  auto ret =
-      getFromWeb(buffer,
-                 "https://catalog.terradue.com/eoepca-apps/"
-                 "search?format=atom&uid=application_package_sample_app");
 
-  if (ret == 200) {
-    auto lib = std::make_unique<EOEPCA::EOEPCAows>(confEoepca["owsparser"]);
+  map *tmpMap = NULL;
 
-    if (!lib->IsValid()) {
-      // std::cerr << "can't load libeoepcaows \n";
+  tmpMap = getMapFromMaps(inputs, "applicationPackage", "value");
 
-      setMapInMaps(conf, "lenv", "message", "can't load libeoepcaows");
-      setMapInMaps(conf, "lenv", "code", "noApplicableCode");
+//  std::string buffer;
+//  auto ret =
+//      getFromWeb(buffer,
+//                 "https://catalog.terradue.com/eoepca-apps/"
+//                 "search?format=atom&uid=application_package_sample_app");
+//
+//  if (ret == 200) {
+//    auto lib = std::make_unique<EOEPCA::EOEPCAows>(confEoepca["owsparser"]);
+//
+//    if (!lib->IsValid()) {
+//      // std::cerr << "can't load libeoepcaows \n";
+//
+//      setMapInMaps(conf, "lenv", "message", "can't load libeoepcaows");
+//      setMapInMaps(conf, "lenv", "code", "noApplicableCode");
+//
+//      return SERVICE_FAILED;
+//    }
+//
+//    std::unique_ptr<EOEPCA::OWS::OWSContext,
+//                    std::function<void(EOEPCA::OWS::OWSContext*)>>
+//        ptrContext(lib->parseFromMemory(buffer.c_str(), buffer.size()),
+//                   lib->releaseParameter);
+//
+//    std::stringbuf buffer;
+//    std::ostream os(&buffer);
+//
+//    if (ptrContext) {
+//      auto converter = std::make_unique<ZOO::ZooConverter>();
+//
+//      try {
+//        auto out = converter->convert(ptrContext.get());
+//        for (auto& single : out) {
+//          os << "code: " << single->getCode() << "\n";
+//          os << "cwlUri: " << single->getCwlUri() << "\n";
+//          os << "dockerRef: " << single->getDockerRef() << "\n";
+//
+//          for (auto& zoo : single->getZoos()) {
+//            os << "Identifier: " << zoo->getIdentifier() << "\n";
+//            os << "Config: \n" << zoo->getConfigFile() << "\n";
+//          }
+//        }
+//
+//        setMapInMaps(outputs, "debug", "value", buffer.str().c_str());
+//
+//      } catch (std::runtime_error& err) {
+//        setMapInMaps(conf, "lenv", "message", err.what());
+//        setMapInMaps(conf, "lenv", "code", "noApplicableCode");
+//
+//        return SERVICE_FAILED;
+//      }
+//    }
+//
+//  } else {
+//    setMapInMaps(outputs, "debug", "value", "no no no nooooooo");
+//  }
 
-      return SERVICE_FAILED;
-    }
-
-    std::unique_ptr<EOEPCA::OWS::OWSContext,
-                    std::function<void(EOEPCA::OWS::OWSContext*)>>
-        ptrContext(lib->parseFromMemory(buffer.c_str(), buffer.size()),
-                   lib->releaseParameter);
-
-    std::stringbuf buffer;
-    std::ostream os(&buffer);
-
-    if (ptrContext) {
-      auto converter = std::make_unique<ZOO::ZooConverter>();
-
-      try {
-        auto out = converter->convert(ptrContext.get());
-        for (auto& single : out) {
-          os << "code: " << single->getCode() << "\n";
-          os << "cwlUri: " << single->getCwlUri() << "\n";
-          os << "dockerRef: " << single->getDockerRef() << "\n";
-
-          for (auto& zoo : single->getZoos()) {
-            os << "Identifier: " << zoo->getIdentifier() << "\n";
-            os << "Config: \n" << zoo->getConfigFile() << "\n";
-          }
-        }
-
-        setMapInMaps(outputs, "debug", "value", buffer.str().c_str());
-
-      } catch (std::runtime_error& err) {
-        setMapInMaps(conf, "lenv", "message", err.what());
-        setMapInMaps(conf, "lenv", "code", "noApplicableCode");
-
-        return SERVICE_FAILED;
-      }
-    }
-
-  } else {
-    setMapInMaps(outputs, "debug", "value", "no no no nooooooo");
-  }
-
-  //  setMapInMaps(outputs, "debug", "value", "no no no nooooooo");
+    setMapInMaps(outputs, "debug", "value", tmpMap->value);
   setMapInMaps(outputs, "deployResult", "value", "<CIAO/>");
   return SERVICE_SUCCEEDED;
 }

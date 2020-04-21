@@ -2,11 +2,11 @@
 
 #include "zoo/zooconverter.hpp"
 
-#include <iostream>
 #include <list>
 #include <memory>
 #include <sstream>
 #include <utility>
+#include <utils/sha1.hpp>
 
 namespace ZOO {
 
@@ -208,6 +208,8 @@ class ZooJob {
   std::list<std::string> inputs{};
   std::list<std::string> outputs{};
 
+  std::list<std::string> tags;
+
  public:
   ZooJob() = default;
   virtual ~ZooJob() = default;
@@ -222,6 +224,8 @@ class ZooJob {
  public:
   void addInput(std::string);
   void addOutput(std::string);
+
+  void setTags(const std::list<std::string>& pTags);
 
   const std::list<std::string>& getInputs() const;
   const std::list<std::string>& getOutputs() const;
@@ -249,7 +253,16 @@ void ZooJob::addOutput(std::string val) {
 }
 
 std::string ZooJob::getUniqueService() const {
-  return identifier + "_" + processVersion;
+  std::string toSha1{""};
+  for (auto& tag : tags) {
+    toSha1.append(tag);
+  }
+  toSha1.append(identifier).append(processVersion);
+
+  std::string id = "w";
+  id.append(sha1::parseString(toSha1));
+
+  return id;
 }
 
 ZooJob::operator std::string() const {
@@ -330,6 +343,7 @@ const std::list<std::string>& ZooJob::getInputs() const { return inputs; }
 const std::list<std::string>& ZooJob::getOutputs() const { return outputs; }
 
 std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
+    const std::list<std::string>& uniqueTags,
     EOEPCA::OWS::OWSContext* owsContext) {
   std::list<std::unique_ptr<ZooApplication>> all;
 
@@ -348,6 +362,7 @@ std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
       for (auto& processDescription : offer->getProcessDescription()) {
         auto zoo = std::make_unique<Zoo>();
         auto zooJob = std::make_unique<ZooJob>();
+        zooJob->setTags(uniqueTags);
 
         zooJob->setTitle(processDescription->getTitle());
         zooJob->setAbstract(processDescription->getAbstract());
@@ -413,5 +428,7 @@ const std::list<std::unique_ptr<Zoo>>& ZooApplication::getZoos() const {
 const std::string& ZooApplication::getCwlUri() const { return cwlUri; }
 const std::string& ZooApplication::getDockerRef() const { return dockerRef; }
 const std::string& ZooApplication::getCode() const { return code; }
+
+void ZooJob::setTags(const std::list<std::string>& pTags) { tags = pTags; }
 
 }  // namespace ZOO
