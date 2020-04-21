@@ -5,7 +5,7 @@
 	storeSupported = true
 	statusSupported = true
 	serviceType = C
-	serviceProvider = epcatransactional.zo
+	serviceProvider = libepcatransactional.so
 <DataInputs>
 	[applicationPackage]
 	Title = Application Package

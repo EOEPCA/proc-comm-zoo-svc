@@ -26,13 +26,15 @@ docker pull ${DOCKER_ZOO}
 mkdir -p  ${ZOO_ZOOSERVICES}
 cp src/zoo/*.zcfg ${ZOO_ZOOSERVICES}/
 
-
 #docker build --rm -t eoepcaadeswps:1.0 .
 docker build --rm -t ${EOEPCA_ZOO} .
 docker run -d --rm --name zoo -p 7777:80 -v  $PWD/zooservices:/zooservices ${EOEPCA_ZOO}
 
+docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} cmake3 -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" -DZOOBUILD=On  ..
+docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make
 
-#docker run  --rm  -v $PWD/src/zoo;/work ${DOCKER_ZOO} cmake -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" .
+
+#mv zoo_build_services/libaaaa.so zooservices/eoepcaadesdeployprocess.zo
 
 #curl -s -L  "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=GetCapabilities"
 #curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesdeployprocess"

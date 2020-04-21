@@ -2,10 +2,12 @@
 #include "service.h"
 #include "service_internal.h"
 
-//#include <eoepca/owl/eoepcaows.hpp>
-//#include <eoepca/owl/owsparameter.hpp>
+#include <eoepca/owl/eoepcaows.hpp>
+#include <eoepca/owl/owsparameter.hpp>
 
 
+#include <web/httpfuntions.hpp>
+#include <zoo/zooconverter.hpp>
 
 #include <string>
 #include <map>
@@ -34,8 +36,25 @@ ZOO_DLL_EXPORT int eoepcaadesdeployprocess(maps*& conf, maps*& inputs, maps*& ou
   std::map<std::string, std::string> confMain;
   getT2ConfigurationFromZooMapConfig(conf, "confMain", confMain);
 
+  std::string buffer;
+  auto ret =
+      getFromWeb(buffer,
+                 "https://catalog.terradue.com/eoepca-apps/"
+                 "search?format=atom&uid=application_package_sample_app");
 
-  setMapInMaps(outputs, "debug", "value", confEoepca["owsparser"].c_str());
+  if (ret == 200) {
+    setMapInMaps(outputs, "debug", "value", buffer.c_str());
+  }else{
+    setMapInMaps(outputs, "debug", "value", "no no no nooooooo");
+  }
+
+
+
+
+
+
+
+//  setMapInMaps(outputs, "debug", "value", "no no no nooooooo");
   setMapInMaps(outputs, "deployResult", "value", "<CIAO/>");
   return SERVICE_SUCCEEDED;
 }
