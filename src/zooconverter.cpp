@@ -364,6 +364,7 @@ std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
       // create application
       auto zooApplication = std::make_unique<ZooApplication>();
       zooApplication->setCode(offer->getCode());
+      zooApplication->setPackageId(entry->getPackageIdentifier());
 
       // contents
       for (auto& content : offer->getContents()) {
@@ -382,6 +383,9 @@ std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
         zooJob->setIdentifier(processDescription->getIdentifier());
         zooJob->setProcessVersion(processDescription->getVersion());
 
+//        zooJob->setTitle(processDescription->getTitle());
+//        zooJob->setAbstract(processDescription->getAbstract());
+
         for (auto& [k, v] : metadata) {
           zooJob->addMetadata(k, v);
         }
@@ -398,6 +402,8 @@ std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
         zooConfig->setPackageId(entry->getPackageIdentifier());
         zooConfig->setProcessDescriptionId(processDescription->getIdentifier());
         zooConfig->setProcessVersion(processDescription->getVersion());
+        zooConfig->setTitle(processDescription->getTitle());
+        zooConfig->setAbstract(processDescription->getAbstract());
 
         for (auto& input : processDescription->getInputs()) {
           auto res = parseParam<EOEPCA::OWS::Param>(input.get());
@@ -433,6 +439,10 @@ Zoo& Zoo::operator=(const Zoo& other) {
     this->packageID = other.packageID;
     this->processDescriptionId = other.processDescriptionId;
     this->processVersion = other.processVersion;
+
+    this->title=other.title;
+    this->Abstract=other.Abstract;
+
   }
   return *this;
 }
@@ -459,6 +469,10 @@ const std::string& Zoo::getProcessVersion() const { return processVersion; }
 void Zoo::setProcessVersion(const std::string& processVersion) {
   Zoo::processVersion = processVersion;
 }
+const std::string& Zoo::getTitle() const { return title; }
+void Zoo::setTitle(const std::string& title) { Zoo::title = title; }
+const std::string& Zoo::getAbstract() const { return Abstract; }
+void Zoo::setAbstract(const std::string& abstract) { Abstract = abstract; }
 
 void ZooApplication::setContent(std::string_view href, std::string_view type) {
   if (type == "application/vnd.docker.distribution.manifest.v1+json") {
@@ -481,6 +495,10 @@ const std::list<std::unique_ptr<Zoo>>& ZooApplication::getZoos() const {
 const std::string& ZooApplication::getCwlUri() const { return cwlUri; }
 const std::string& ZooApplication::getDockerRef() const { return dockerRef; }
 const std::string& ZooApplication::getCode() const { return code; }
+const std::string& ZooApplication::getPackageId() const { return packageID; }
+void ZooApplication::setPackageId(const std::string& packageId) {
+  packageID = packageId;
+}
 
 void ZooJob::addTags(const std::list<std::string>& pTags) {
   for (auto& tag : pTags) {

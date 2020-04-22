@@ -38,21 +38,5 @@
 </ComplexOutput>
 </DataOutputs>
 
-<DataOutputs>
-	[debug]
-	Title = debug Result
-	Abstract = debug Result
-<ComplexOutput>
-	<Default>
-		encoding = ISO-8859-1
-		MimeType = text/plain
-	</Default>
-	<Supported>
-		encoding = ISO-8859-1
-		MimeType = text/plain
-	</Supported>
-</ComplexOutput>
-</DataOutputs>
-
 
 

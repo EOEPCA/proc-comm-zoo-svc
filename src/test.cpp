@@ -62,7 +62,11 @@ int main(int argc, const char **argv) {
 
             std::cout << "Identifier: " << zoo->getIdentifier() << "\n";
             std::cout << "Provider: " << zoo->getProvider() << "\n";
-            std::cout << "Config: \n"<< zoo->getConfigFile() << "\n";
+//            std::cout << "Config: \n"<< zoo->getConfigFile() << "\n";
+
+            std::cout << "title: " << zoo->getTitle() << "\n";
+            std::cout << "abstract: " << zoo->getAbstract() << "\n";
+
 
           }
         }

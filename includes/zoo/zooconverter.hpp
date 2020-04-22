@@ -18,6 +18,8 @@ class Zoo {
   std::string processDescriptionId{""};
   std::string processVersion{""};
 
+  std::string title{""};
+  std::string Abstract{""};
  public:
   Zoo() = default;
   virtual ~Zoo() = default;
@@ -39,6 +41,10 @@ class Zoo {
   void setProcessDescriptionId(const std::string &processDescriptionId);
   const std::string &getProcessVersion() const;
   void setProcessVersion(const std::string &processVersion);
+  const std::string &getTitle() const;
+  void setTitle(const std::string &title);
+  const std::string &getAbstract() const;
+  void setAbstract(const std::string &abstract);
 };
 
 class ZooApplication {
@@ -46,6 +52,7 @@ class ZooApplication {
   std::string cwlUri{""};
   std::string dockerRef{""};
   std::string code{""};
+  std::string packageID{""};
 
  public:
   ZooApplication() = default;
@@ -60,6 +67,9 @@ class ZooApplication {
   const std::string &getCwlUri() const;
   const std::string &getDockerRef() const;
   const std::string &getCode() const;
+
+  const std::string &getPackageId() const;
+  void setPackageId(const std::string &packageId);
 };
 
 class ZooConverter {

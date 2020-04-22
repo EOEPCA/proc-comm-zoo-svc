@@ -1,4 +1,5 @@
 
+#include <cstdio>
 #include <eoepca/owl/eoepcaows.hpp>
 #include <eoepca/owl/owsparameter.hpp>
 #include <fstream>
@@ -27,6 +28,11 @@ void getT2ConfigurationFromZooMapConfig(
       tmp = tmp->next;
     }
   }
+}
+
+int removeFile(const char* filename) {
+  if (!filename) return 0;
+  return std::remove(filename);
 }
 
 bool fileExist(const char* fileName) {
@@ -90,56 +96,30 @@ void MEdumpMaps(maps* m) {
 }
 
 enum class Operation { DEPLOY, UNDEPLOY };
+enum class DeployResults { NONE, EXIST, CANTWRITE };
 
 //  std::list<std::unique_ptr<ZOO::Zoo>> zooApplicationOk{};
 //  std::list<std::unique_ptr<ZOO::Zoo>> zooApplicationNOk{};
 
-int deploy(std::string_view basePath,
-           const std::list<std::unique_ptr<ZOO::ZooApplication>>& out,
-           std::stringbuf& xmlBufferResult) {
-
-  auto xml = std::make_unique<XmlWriteMemoryWrapper>();
-
-  xml->startDocument("1.0", "UTF-8", "no");
-
-  std::string finalPath;
-  for (auto& single : out) {
-    for (auto& zoo : single->getZoos()) {
-      auto app = std::make_unique<ZOO::Zoo>();
-      *app = *zoo;
-
-      finalPath = basePath;
-      finalPath.append(app->getIdentifier());
-      finalPath.append(".zcfg");
-
-      LOGTEST << "checkFLE: " << finalPath << "\n";
-      if (fileExist(finalPath.c_str())) {
-        LOGTEST << "FILE: " << finalPath << "  exist\n";
-      } else {
-        auto res = writeContent(finalPath.c_str(), app->getConfigFile());
-        if (res) {
-          LOGTEST << "can't write\n";
-        }
-      }
+DeployResults deploy(std::string_view path, std::string_view content) {
+  if (fileExist(path.data())) {
+    return DeployResults::EXIST;
+  } else {
+    if (writeContent(path.data(), content.data())) {
+      return DeployResults::CANTWRITE;
     }
   }
-  xml->endDocument();
-  xml->getBuffer(xmlBufferResult);
 
-  return 0;
+  return DeployResults::NONE;
 }
 
 int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
-  //  MEdumpMaps(conf);
-  //  MEdumpMaps(inputs);
-  //  MEdumpMaps(outputs);
-
   std::map<std::string, std::string> confEoepca;
   getT2ConfigurationFromZooMapConfig(conf, "eoepca", confEoepca);
 
   std::map<std::string, std::string> confMain;
   getT2ConfigurationFromZooMapConfig(conf, "main", confMain);
-  //  servicePath
+
   if (confMain["servicePath"].empty()) {
     return setZooError(conf, "zoo servicePath empty()", "noApplicableCode");
   }
@@ -177,9 +157,6 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
                                             bufferOWSFile.size()),
                        lib->releaseParameter);
 
-        std::stringbuf buffer;
-        std::ostream os(&buffer);
-
         if (ptrContext) {
           auto converter = std::make_unique<ZOO::ZooConverter>();
 
@@ -194,19 +171,117 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
 
           auto out = converter->convert(uniqueTags, ptrContext.get(), metadata);
 
+          std::stringbuf strBuffer;
+          auto xml = std::make_unique<XmlWriteMemoryWrapper>();
+          xml->startDocument("", "", "");
+          xml->startElement("result");
+          xml->writeAttribute("applicationPackageFile", owsOri);
 
+          std::string finalPath;
+          for (auto& single : out) {
+            xml->startElement("operations");
+            {
+              xml->writeAttribute("packageId", single->getPackageId());
 
+              xml->startElement("operation");
+              {
+                for (auto& zoo : single->getZoos()) {
+                  xml->writeAttribute("processId",
+                                      zoo->getProcessDescriptionId());
+                  xml->writeAttribute("processVersion",
+                                      zoo->getProcessVersion());
+                  xml->writeAttribute("version", zoo->getProcessVersion());
+                  xml->writeAttribute("type", operation == Operation::DEPLOY
+                                                  ? "deploy"
+                                                  : "undeploy");
 
+                  finalPath = confMain["servicePath"];
+                  finalPath.append(zoo->getIdentifier());
 
+                  xml->startElement("wpsId");
+                  { xml->writeContent(zoo->getIdentifier()); }
+                  xml->endElement();
 
+                  xml->startElement("title");
+                  { xml->writeContent(zoo->getTitle()); }
+                  xml->endElement();
 
-          std::stringbuf xmlBufferResult;
+                  xml->startElement("abstract");
+                  { xml->writeContent(zoo->getAbstract()); }
+                  xml->endElement();
+
+                  switch (operation) {
+                    case Operation::DEPLOY: {
+                      finalPath.append(".zcfg");
+
+                      xml->startElement("status");
+                      switch (deploy(finalPath, zoo->getConfigFile())) {
+                        case DeployResults::NONE: {
+                          xml->writeAttribute("err", "0");
+                          xml->writeAttribute("mess", "");
+                          xml->writeContent("ready");
+                          break;
+                        }
+                        case DeployResults::CANTWRITE: {
+                          xml->writeAttribute("err", "1");
+                          xml->writeAttribute(
+                              "message", "Can' t write all necessary files");
+                          xml->writeContent("not ready");
+                          break;
+                        }
+                        case DeployResults::EXIST: {
+                          xml->writeAttribute("err", "2");
+                          xml->writeAttribute("message",
+                                              "Service already installed");
+                          xml->writeContent("not ready");
+                          break;
+                        }
+                      }
+                      xml->endElement();
+                      break;
+                    }
+                    case Operation::UNDEPLOY: {
+                      finalPath.append(".zcfg");
+                      xml->startElement("status");
+
+                      if (fileExist(finalPath.c_str()) &&
+                          removeFile(finalPath.c_str())) {
+                        xml->writeAttribute("err", "4");
+                        xml->writeAttribute("message",
+                                            "Can't remove the service");
+                        xml->writeContent("removed");
+                      } else {
+                        xml->writeAttribute("err", "0");
+                        xml->writeAttribute("message", "0");
+                        xml->writeContent("removed");
+                      }
+
+                      xml->endElement();
+                      break;
+                    }
+                  }
+                }
+              }
+              xml->endElement();
+            }
+            xml->endElement();
+          }
+
+          xml->endElement();
+          xml->endDocument();
+
+          xml->getBuffer(strBuffer);
+
           switch (operation) {
             case Operation::DEPLOY: {
-              deploy(confMain["servicePath"], out, xmlBufferResult);
+              setMapInMaps(outputs, "deployResult", "value",
+                           strBuffer.str().c_str());
               break;
             }
+
             case Operation::UNDEPLOY: {
+              setMapInMaps(outputs, "unDeployResult", "value",
+                           strBuffer.str().c_str());
               break;
             }
           }
@@ -214,8 +289,6 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
         } else {
           throw std::runtime_error("Error during ows parse!");
         }
-
-        setMapInMaps(outputs, "debug", "value", buffer.str().c_str());
 
       } else {
         std::string err{"Can't load the file: "};
@@ -228,7 +301,6 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
       err.append(applicationPackageZooMap->value);
       throw std::runtime_error(err);
     }
-
   } catch (std::runtime_error& err) {
     std::cerr << err.what();
     return setZooError(conf, err.what(), "noApplicableCode");
@@ -236,8 +308,6 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
     std::cerr << "Unexpected server error";
     return setZooError(conf, "Unexpected server error", "noApplicableCode");
   }
-
-  setMapInMaps(outputs, "deployResult", "value", "<CIAO/>");
 
   return SERVICE_SUCCEEDED;
 }
@@ -250,6 +320,6 @@ ZOO_DLL_EXPORT int eoepcaadesdeployprocess(maps*& conf, maps*& inputs,
 
 ZOO_DLL_EXPORT int eoepcaadesundeployprocess(maps*& conf, maps*& inputs,
                                              maps*& outputs) {
-  return SERVICE_SUCCEEDED;
+  return job(conf, inputs, outputs, Operation::UNDEPLOY);
 }
 }
