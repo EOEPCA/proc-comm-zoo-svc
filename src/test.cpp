@@ -61,6 +61,7 @@ int main(int argc, const char **argv) {
           for (auto &zoo : single->getZoos()) {
 
             std::cout << "Identifier: " << zoo->getIdentifier() << "\n";
+            std::cout << "Provider: " << zoo->getProvider() << "\n";
             std::cout << "Config: \n"<< zoo->getConfigFile() << "\n";
 
           }

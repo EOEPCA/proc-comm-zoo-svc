@@ -310,8 +310,7 @@ int sha_parseFile(std::string file, std::string& bufferRes,
   assert(sizeof(u32) == 4);
 
   FILE* fp;
-  // char buffer[4096];
-  // http://www.ashmultimedia.com/ashmultimedia/italiano/convertitore_byte_kilobyte_megabyte_gigabyte.asp
+
   char* buffer = new char[bufferSize];
 
   size_t n;

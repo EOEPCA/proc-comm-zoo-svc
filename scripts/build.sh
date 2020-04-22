@@ -35,19 +35,30 @@ docker pull ${DOCKER_ZOO}
 mkdir -p  ${ZOO_ZOOSERVICES}
 cp src/zoo/*.zcfg ${ZOO_ZOOSERVICES}/
 
-#docker build --rm -t eoepcaadeswps:1.0 .
-docker build --rm -t ${EOEPCA_ZOO} .
-docker run -d --rm --name zoo -p 7777:80 -v  $PWD/zooservices:/zooservices ${EOEPCA_ZOO}
 
-docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} cmake3 -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" -DZOOBUILD=On  ..
-docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make install
+docker run  --rm -w /work/${ZOO_BUILD_SERVICE}  -v $PWD:/work ${DOCKER_ZOO} cmake3 -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" -DZOOBUILD=On  ..
+docker run  --rm -w /work/${ZOO_BUILD_SERVICE}  -v $PWD:/work ${DOCKER_ZOO} make
+
+docker build --rm -t ${EOEPCA_ZOO} .
+
+
+
+
+
+#docker run -d --rm --name zoo -p 7777:80 -v  $PWD/zooservices:/zooservices ${EOEPCA_ZOO}
+#docker run -d --rm --name zoo -p 7777:80  ${EOEPCA_ZOO}
+
 
 #mv zoo_build_services/libaaaa.so zooservices/eoepcaadesdeployprocess.zo
+
+#docker exec -ti zoo tail -f /var/log/httpd/error_log
 
 #curl -s -L  "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=GetCapabilities"
 #curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesdeployprocess"
 
 #curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesdeployprocess&dataInputs=applicationPackage=https%3A%2F%2Fcatalog.terradue.com%2Feoepca-apps%2Fsearch%3Fformat%3Datom%26uid%3Dapplication_package_sample_app;&ResponseDocument=debug@mimeType=text/plain;deployResult@mimeType=application/xml"
+
+#sudo chmod +w  $PWD/zooservices
 #docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make install && curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesdeployprocess&dataInputs=applicationPackage=https%3A%2F%2Fcatalog.terradue.com%2Feoepca-apps%2Fsearch%3Fformat%3Datom%26uid%3Dapplication_package_sample_app;&ResponseDocument=debug@mimeType=text/plain;deployResult@mimeType=application/xml"
 
 #curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesundeployprocess"

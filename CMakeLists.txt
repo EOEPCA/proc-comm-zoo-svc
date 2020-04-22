@@ -32,6 +32,7 @@ if (ZOOBUILD)
 
     SET(LIB_SRC
             src/zoo/deploy.cpp
+            src/xmlmemorywritewrapper.cpp
             )
 
     SET(MODS_LIBS
@@ -44,6 +45,7 @@ if (ZOOBUILD)
     #
 
     install(TARGETS epcatransactional DESTINATION /work/zooservices/)
+#    install(FILES src/zoo/eoepcaadesdeployprocess.zcfg  src/zoo/eoepcaadesundeployprocess.zcfg DESTINATION /work/build/zoo_build_services/)
 
 else ()
 

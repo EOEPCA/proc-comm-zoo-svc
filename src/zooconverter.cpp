@@ -225,7 +225,8 @@ class ZooJob {
   void addInput(std::string);
   void addOutput(std::string);
 
-  void setTags(const std::list<std::string>& pTags);
+  void addTags(const std::list<std::string>& pTags);
+  void addTags(std::string_view pTag);
 
   const std::list<std::string>& getInputs() const;
   const std::list<std::string>& getOutputs() const;
@@ -286,7 +287,8 @@ std::ostream& operator<<(std::ostream& os, const ZooJob& zoo) {
      << "\n";
   os << "serviceType = C"
      << "\n";
-  os << "serviceProvider = " << zoo.getUniqueService() << "\n";
+  os << "serviceProvider = " << zoo.getUniqueService() << ".zo"
+     << "\n";
 
   os << "<MetaData>"
      << "\n";
@@ -372,7 +374,8 @@ std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
       for (auto& processDescription : offer->getProcessDescription()) {
         auto zoo = std::make_unique<Zoo>();
         auto zooJob = std::make_unique<ZooJob>();
-        zooJob->setTags(uniqueTags);
+        zooJob->addTags(entry->getPackageIdentifier());
+        zooJob->addTags(uniqueTags);
 
         zooJob->setTitle(processDescription->getTitle());
         zooJob->setAbstract(processDescription->getAbstract());
@@ -383,9 +386,18 @@ std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
           zooJob->addMetadata(k, v);
         }
         zooJob->addMetadata("cwl", zooApplication->getCwlUri());
+        zooJob->addMetadata("PackageId", entry->getPackageIdentifier());
+        zooJob->addMetadata("ProcessDescriptionIdentifier",
+                            processDescription->getIdentifier());
+        zooJob->addMetadata("ProcessDescriptionVersion",
+                            processDescription->getVersion());
 
         auto zooConfig = std::make_unique<Zoo>();
         zooConfig->setIdentifier(std::move(zooJob->getUniqueService()));
+        zooConfig->setProvider(zooConfig->getIdentifier() + ".zo");
+        zooConfig->setPackageId(entry->getPackageIdentifier());
+        zooConfig->setProcessDescriptionId(processDescription->getIdentifier());
+        zooConfig->setProcessVersion(processDescription->getVersion());
 
         for (auto& input : processDescription->getInputs()) {
           auto res = parseParam<EOEPCA::OWS::Param>(input.get());
@@ -413,6 +425,18 @@ std::list<std::unique_ptr<ZooApplication>> ZooConverter::convert(
   return all;
 }
 
+Zoo& Zoo::operator=(const Zoo& other) {
+  if (this != &other) {
+    this->configFile = other.configFile;
+    this->identifier = other.identifier;
+    this->provider = other.provider;
+    this->packageID = other.packageID;
+    this->processDescriptionId = other.processDescriptionId;
+    this->processVersion = other.processVersion;
+  }
+  return *this;
+}
+
 const std::string& Zoo::getConfigFile() const { return configFile; }
 void Zoo::setConfigFile(const std::string& configFile) {
   Zoo::configFile = configFile;
@@ -420,6 +444,20 @@ void Zoo::setConfigFile(const std::string& configFile) {
 const std::string& Zoo::getIdentifier() const { return identifier; }
 void Zoo::setIdentifier(std::string identifier) {
   Zoo::identifier = identifier;
+}
+const std::string& Zoo::getProvider() const { return provider; }
+void Zoo::setProvider(const std::string& provider) { Zoo::provider = provider; }
+const std::string& Zoo::getPackageId() const { return packageID; }
+void Zoo::setPackageId(const std::string& packageId) { packageID = packageId; }
+const std::string& Zoo::getProcessDescriptionId() const {
+  return processDescriptionId;
+}
+void Zoo::setProcessDescriptionId(const std::string& processDescriptionId) {
+  Zoo::processDescriptionId = processDescriptionId;
+}
+const std::string& Zoo::getProcessVersion() const { return processVersion; }
+void Zoo::setProcessVersion(const std::string& processVersion) {
+  Zoo::processVersion = processVersion;
 }
 
 void ZooApplication::setContent(std::string_view href, std::string_view type) {
@@ -444,6 +482,12 @@ const std::string& ZooApplication::getCwlUri() const { return cwlUri; }
 const std::string& ZooApplication::getDockerRef() const { return dockerRef; }
 const std::string& ZooApplication::getCode() const { return code; }
 
-void ZooJob::setTags(const std::list<std::string>& pTags) { tags = pTags; }
+void ZooJob::addTags(const std::list<std::string>& pTags) {
+  for (auto& tag : pTags) {
+    tags.emplace_back(tag);
+  }
+}
+
+void ZooJob::addTags(std::string_view pTag) { tags.emplace_back(pTag); }
 
 }  // namespace ZOO

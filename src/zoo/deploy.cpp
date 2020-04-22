@@ -1,12 +1,15 @@
 
 #include <eoepca/owl/eoepcaows.hpp>
 #include <eoepca/owl/owsparameter.hpp>
+#include <fstream>
 #include <functional>
 #include <list>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
+#include <utils/xmlmemorywritewrapper.hpp>
 #include <web/httpfuntions.hpp>
 #include <zoo/zooconverter.hpp>
 
@@ -26,6 +29,24 @@ void getT2ConfigurationFromZooMapConfig(
   }
 }
 
+bool fileExist(const char* fileName) {
+  std::ifstream infile(fileName);
+  return infile.good();
+}
+
+int writeContent(const char* fileName, std::string_view content) {
+  std::ofstream file(fileName);
+  if (file.good()) {
+    file << content;
+    file.flush();
+    file.close();
+  } else {
+    return 1;
+  }
+
+  return 0;
+}
+
 int setZooError(maps* conf, std::string_view message, std::string_view code) {
   setMapInMaps(conf, "lenv", "message", message.data());
   setMapInMaps(conf, "lenv", "code", code.data());
@@ -33,15 +54,102 @@ int setZooError(maps* conf, std::string_view message, std::string_view code) {
   return SERVICE_FAILED;
 }
 
-extern "C" {
+#define LOGTEST (std::cerr)
+void _MEdumpMap(map* t) {
+  if (t != NULL) {
+    LOGTEST << t->name << ": (" << t->value << ")\n";
+    //        if(t->next!=NULL){
+    //            // _MEdumpMap(t->next);
+    //        }
+  } else {
+    LOGTEST << "NULL\n";
+  }
+}
 
-ZOO_DLL_EXPORT int eoepcaadesdeployprocess(maps*& conf, maps*& inputs,
-                                           maps*& outputs) {
+void MEdumpMap(map* t) {
+  map* tmp = t;
+  while (tmp != NULL) {
+    _MEdumpMap(tmp);
+    tmp = tmp->next;
+  }
+  LOGTEST << "----------------END\n";
+}
+
+void MEdumpMaps(maps* m) {
+  maps* tmp = m;
+  while (tmp != NULL) {
+    LOGTEST << "\n----------------INI\n";
+    LOGTEST << "MAP => [" << tmp->name << "] \n";
+    LOGTEST << " * CONTENT [" << tmp->name << "] \n";
+    LOGTEST << "----------------VALUE" << std::endl;
+    MEdumpMap(tmp->content);
+    LOGTEST << " * CHILD [" << tmp->name << "] \n" << std::endl;
+    MEdumpMaps(tmp->child);
+    tmp = tmp->next;
+  }
+}
+
+enum class Operation { DEPLOY, UNDEPLOY };
+
+//  std::list<std::unique_ptr<ZOO::Zoo>> zooApplicationOk{};
+//  std::list<std::unique_ptr<ZOO::Zoo>> zooApplicationNOk{};
+
+int deploy(std::string_view basePath,
+           const std::list<std::unique_ptr<ZOO::ZooApplication>>& out,
+           std::stringbuf& xmlBufferResult) {
+
+  auto xml = std::make_unique<XmlWriteMemoryWrapper>();
+
+  xml->startDocument("1.0", "UTF-8", "no");
+
+  std::string finalPath;
+  for (auto& single : out) {
+    for (auto& zoo : single->getZoos()) {
+      auto app = std::make_unique<ZOO::Zoo>();
+      *app = *zoo;
+
+      finalPath = basePath;
+      finalPath.append(app->getIdentifier());
+      finalPath.append(".zcfg");
+
+      LOGTEST << "checkFLE: " << finalPath << "\n";
+      if (fileExist(finalPath.c_str())) {
+        LOGTEST << "FILE: " << finalPath << "  exist\n";
+      } else {
+        auto res = writeContent(finalPath.c_str(), app->getConfigFile());
+        if (res) {
+          LOGTEST << "can't write\n";
+        }
+      }
+    }
+  }
+  xml->endDocument();
+  xml->getBuffer(xmlBufferResult);
+
+  return 0;
+}
+
+int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
+  //  MEdumpMaps(conf);
+  //  MEdumpMaps(inputs);
+  //  MEdumpMaps(outputs);
+
   std::map<std::string, std::string> confEoepca;
   getT2ConfigurationFromZooMapConfig(conf, "eoepca", confEoepca);
 
   std::map<std::string, std::string> confMain;
-  getT2ConfigurationFromZooMapConfig(conf, "confMain", confMain);
+  getT2ConfigurationFromZooMapConfig(conf, "main", confMain);
+  //  servicePath
+  if (confMain["servicePath"].empty()) {
+    return setZooError(conf, "zoo servicePath empty()", "noApplicableCode");
+  }
+
+  if (*confMain["servicePath"].rbegin() != '/') {
+    confMain["servicePath"].append("/");
+  }
+
+  std::map<std::string, std::string> confMetadata;
+  getT2ConfigurationFromZooMapConfig(conf, "metadata", confMetadata);
 
   map* applicationPackageZooMap =
       getMapFromMaps(inputs, "applicationPackage", "value");
@@ -61,12 +169,12 @@ ZOO_DLL_EXPORT int eoepcaadesdeployprocess(maps*& conf, maps*& inputs,
       auto lib = std::make_unique<EOEPCA::EOEPCAows>(libPath);
       if (lib->IsValid()) {
         std::list<std::pair<std::string, std::string>> metadata;
-        metadata.emplace_back("owsOrigin",
-                              std::string(owsOri));
+        metadata.emplace_back("owsOrigin", std::string(owsOri));
 
         std::unique_ptr<EOEPCA::OWS::OWSContext,
                         std::function<void(EOEPCA::OWS::OWSContext*)>>
-            ptrContext(lib->parseFromMemory(bufferOWSFile.c_str(), bufferOWSFile.size()),
+            ptrContext(lib->parseFromMemory(bufferOWSFile.c_str(),
+                                            bufferOWSFile.size()),
                        lib->releaseParameter);
 
         std::stringbuf buffer;
@@ -78,35 +186,36 @@ ZOO_DLL_EXPORT int eoepcaadesdeployprocess(maps*& conf, maps*& inputs,
           std::list<std::string> uniqueTags{};
           uniqueTags.emplace_back(owsOri);
 
-
           std::list<std::pair<std::string, std::string>> metadata;
-          metadata.emplace_back("owsOri",owsOri);
-          if (!confEoepca["adesId"].empty()){
-            metadata.emplace_back("adesId",confEoepca["adesId"]);
+          if (!confMetadata.empty()) {
+            for (auto& [k, v] : confMetadata) metadata.emplace_back(k, v);
           }
+          metadata.emplace_back("owsOri", owsOri);
+
+          auto out = converter->convert(uniqueTags, ptrContext.get(), metadata);
 
 
-          auto out = converter->convert(uniqueTags,ptrContext.get(),metadata);
 
-          for (auto& single : out) {
-            os << "code: " << single->getCode() << "\n";
-            os << "cwlUri: " << single->getCwlUri() << "\n";
-            os << "dockerRef: " << single->getDockerRef() << "\n";
 
-            for (auto& zoo : single->getZoos()) {
-              os << "Identifier: " << zoo->getIdentifier() << "\n";
-              os << "Config: \n" << zoo->getConfigFile() << "\n";
+
+
+
+          std::stringbuf xmlBufferResult;
+          switch (operation) {
+            case Operation::DEPLOY: {
+              deploy(confMain["servicePath"], out, xmlBufferResult);
+              break;
+            }
+            case Operation::UNDEPLOY: {
+              break;
             }
           }
-
-
 
         } else {
           throw std::runtime_error("Error during ows parse!");
         }
 
         setMapInMaps(outputs, "debug", "value", buffer.str().c_str());
-
 
       } else {
         std::string err{"Can't load the file: "};
@@ -121,70 +230,26 @@ ZOO_DLL_EXPORT int eoepcaadesdeployprocess(maps*& conf, maps*& inputs,
     }
 
   } catch (std::runtime_error& err) {
+    std::cerr << err.what();
     return setZooError(conf, err.what(), "noApplicableCode");
   } catch (...) {
+    std::cerr << "Unexpected server error";
     return setZooError(conf, "Unexpected server error", "noApplicableCode");
   }
 
-  //
-  //  if (ret == 200) {
-  //    auto lib = std::make_unique<EOEPCA::EOEPCAows>(confEoepca["owsparser"]);
-  //
-  //    if (!lib->IsValid()) {
-  //      // std::cerr << "can't load libeoepcaows \n";
-  //
-  //      setMapInMaps(conf, "lenv", "message", "can't load libeoepcaows");
-  //      setMapInMaps(conf, "lenv", "code", "noApplicableCode");
-  //
-  //      return SERVICE_FAILED;
-  //    }
-  //
-  //    std::unique_ptr<EOEPCA::OWS::OWSContext,
-  //                    std::function<void(EOEPCA::OWS::OWSContext*)>>
-  //        ptrContext(lib->parseFromMemory(buffer.c_str(), buffer.size()),
-  //                   lib->releaseParameter);
-  //
-  //    std::stringbuf buffer;
-  //    std::ostream os(&buffer);
-  //
-  //    if (ptrContext) {
-  //      auto converter = std::make_unique<ZOO::ZooConverter>();
-  //
-  //      try {
-  //        auto out = converter->convert(ptrContext.get());
-  //        for (auto& single : out) {
-  //          os << "code: " << single->getCode() << "\n";
-  //          os << "cwlUri: " << single->getCwlUri() << "\n";
-  //          os << "dockerRef: " << single->getDockerRef() << "\n";
-  //
-  //          for (auto& zoo : single->getZoos()) {
-  //            os << "Identifier: " << zoo->getIdentifier() << "\n";
-  //            os << "Config: \n" << zoo->getConfigFile() << "\n";
-  //          }
-  //        }
-  //
-  //        setMapInMaps(outputs, "debug", "value", buffer.str().c_str());
-  //
-  //      } catch (std::runtime_error& err) {
-  //        setMapInMaps(conf, "lenv", "message", err.what());
-  //        setMapInMaps(conf, "lenv", "code", "noApplicableCode");
-  //
-  //        return SERVICE_FAILED;
-  //      }
-  //    }
-  //
-  //  } else {
-  //    setMapInMaps(outputs, "debug", "value", "no no no nooooooo");
-  //  }
-
-  //  setMapInMaps(outputs, "debug", "value", tmpMap->value);
   setMapInMaps(outputs, "deployResult", "value", "<CIAO/>");
+
   return SERVICE_SUCCEEDED;
+}
+extern "C" {
+
+ZOO_DLL_EXPORT int eoepcaadesdeployprocess(maps*& conf, maps*& inputs,
+                                           maps*& outputs) {
+  return job(conf, inputs, outputs, Operation::DEPLOY);
 }
 
 ZOO_DLL_EXPORT int eoepcaadesundeployprocess(maps*& conf, maps*& inputs,
                                              maps*& outputs) {
-  setMapInMaps(outputs, "unDeployResult", "value", "<CIAO/>");
   return SERVICE_SUCCEEDED;
 }
 }

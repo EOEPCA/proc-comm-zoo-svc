@@ -12,16 +12,33 @@ namespace ZOO {
 class Zoo {
   std::string configFile{""};
   std::string identifier{""};
+  std::string provider{""};
+
+  std::string packageID{""};
+  std::string processDescriptionId{""};
+  std::string processVersion{""};
 
  public:
   Zoo() = default;
   virtual ~Zoo() = default;
+
+  Zoo& operator=(const Zoo&);
 
   const std::string &getConfigFile() const;
   void setConfigFile(const std::string &configFile);
 
   const std::string &getIdentifier() const;
   void setIdentifier(std::string identifier);
+
+  const std::string &getProvider() const;
+  void setProvider(const std::string &provider);
+
+  const std::string &getPackageId() const;
+  void setPackageId(const std::string &packageId);
+  const std::string &getProcessDescriptionId() const;
+  void setProcessDescriptionId(const std::string &processDescriptionId);
+  const std::string &getProcessVersion() const;
+  void setProcessVersion(const std::string &processVersion);
 };
 
 class ZooApplication {
