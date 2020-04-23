@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-docker stop zoo
+#docker stop zoo
 
 # enviroments
 export DOCKER_ZOO='eoepca/proc-comm-zoo:latest'
@@ -13,60 +13,91 @@ export EOEPCA_ZOO='eoepcaadeswps:1.0'
 # remove directories
 rm -fvR build ${ZOO_BUILD_SERVICE} ${ZOO_ZOOSERVICES}
 
-
-
 ls -ltr
-echo "Press enter to continue!"
-#read
 
-#donload and build
+
+docker pull ${LOCAL_DOCKERIMAGE}
+if [ $? -ne 0 ]
+then
+  echo "Can't pull the  Docker Image: ${LOCAL_DOCKERIMAGE}"
+  exit 1
+fi
+
+
+
 docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} cmake -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" ..
+if [ $? -ne 0 ]
+then
+  echo "CMAKE release ${CMAKERELEASE} failed"
+  exit 2
+fi
+
 docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} make eoepcaows  all
+if [ $? -ne 0 ]
+then
+  echo "Make failed"
+  exit 2
+fi
 
 echo "Run tests"
 ./build/test/libtest-test-zooparser
-
+if [ $? -ne 0 ]
+then
+  echo "tests failed"
+  exit 3
+fi
 
 mkdir -p  ${ZOO_BUILD_SERVICE}
+if [ $? -ne 0 ]
+then
+  echo "Can't prepare the folder ${ZOO_BUILD_SERVICE}"
+  exit 4
+fi
 
 #use ZOO Docker
 docker pull ${DOCKER_ZOO}
+if [ $? -ne 0 ]
+then
+  echo "Can't pull the  Docker image: ${DOCKER_ZOO}"
+  exit 5
+fi
+
 
 mkdir -p  ${ZOO_ZOOSERVICES}
-cp src/zoo/*.zcfg ${ZOO_ZOOSERVICES}/
+if [ $? -ne 0 ]
+then
+  echo "Can't prepare the folder ${ZOO_ZOOSERVICES}"
+  exit 4
+fi
 
+cp src/zoo/*.zcfg ${ZOO_ZOOSERVICES}/
+if [ $? -ne 0 ]
+then
+  echo "Can't prepare the zoo configuration file"
+  exit 4
+fi
 
 docker run  --rm -w /work/${ZOO_BUILD_SERVICE}  -v $PWD:/work ${DOCKER_ZOO} cmake3 -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" -DZOOBUILD=On  ..
+if [ $? -ne 0 ]
+then
+  echo "CMAKE release ${CMAKERELEASE} failed"
+  exit 2
+fi
+
+
 docker run  --rm -w /work/${ZOO_BUILD_SERVICE}  -v $PWD:/work ${DOCKER_ZOO} make
+if [ $? -ne 0 ]
+then
+  echo "Make failed"
+  exit 2
+fi
+
 
 docker build --rm -t ${EOEPCA_ZOO} .
-
-
-
-
-#sudo chmod +777  $PWD/zooservices
-#docker run -d --rm --name zoo -p 7777:80 -v  $PWD/zooservices:/zooservices ${EOEPCA_ZOO}
-#docker run -d --rm --name zoo -p 7777:80  ${EOEPCA_ZOO}
-
-
-#mv zoo_build_services/libaaaa.so zooservices/eoepcaadesdeployprocess.zo
-
-#docker exec -ti zoo tail -f /var/log/httpd/error_log
-
-#curl -s -L  "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=GetCapabilities"
-#curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesdeployprocess"
-
-#curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesdeployprocess&dataInputs=applicationPackage=https%3A%2F%2Fcatalog.terradue.com%2Feoepca-apps%2Fsearch%3Fformat%3Datom%26uid%3Dapplication_package_sample_app;&ResponseDocument=deployResult@mimeType=application/xml"
-
-#DEPLOY
-#docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make install && curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesdeployprocess&dataInputs=applicationPackage=https%3A%2F%2Fcatalog.terradue.com%2Feoepca-apps%2Fsearch%3Fformat%3Datom%26uid%3Dapplication_package_sample_app;&ResponseDocument=deployResult@mimeType=application/xml"
-
-#UNDEPLOY
-#docker run  --rm -w /work/${ZOO_BUILD_SERVICE}    -v $PWD:/work ${DOCKER_ZOO} make install && curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesundeployprocess&dataInputs=applicationPackage=https%3A%2F%2Fcatalog.terradue.com%2Feoepca-apps%2Fsearch%3Fformat%3Datom%26uid%3Dapplication_package_sample_app;&ResponseDocument=unDeployResult@mimeType=application/xml"
-
-
-#curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=eoepcaadesundeployprocess"
-#curl -L  "https://localhost/zoo/?service=wps&version=1.0.0&request=Execute&identifier=TerradueDeployProcess&dataInputs=coordinator=False;&ResponseDocument=deployResult@mimeType=application/xml
-
+if [ $? -ne 0 ]
+then
+  echo "Build ${EOEPCA_ZOO} failed"
+  exit 2
+fi
 
 

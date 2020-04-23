@@ -18,6 +18,6 @@ SET(SHA1S      ../includes/utils/sha1.hpp
 
 
 add_executable(${LIB_TEST_NAME} ${test_sources} ${SHA1S})
-target_link_libraries(${LIB_TEST_NAME} ${MODS_LIBS} gtest_main)
+target_link_libraries(${LIB_TEST_NAME} zooconverter ${MODS_LIBS} ${CURL_LIBRARIES} gtest_main)
 add_test(NAME zooparser_test_run COMMAND ${LIB_TEST_NAME})
 

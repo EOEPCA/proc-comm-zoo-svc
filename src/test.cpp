@@ -46,9 +46,6 @@ int main(int argc, const char **argv) {
       if (ptrContext) {
 
         std::list<std::string> uniqueTags{};
-        uniqueTags.emplace_back("cacsa");
-        uniqueTags.emplace_back("cacs2a");
-        uniqueTags.emplace_back("cacs4a");
 
         auto converter = std::make_unique<ZOO::ZooConverter>();
         auto out = converter->convert(uniqueTags,ptrContext.get());
