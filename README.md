@@ -10,9 +10,6 @@ docker run -d --rm --name zoo  -p 7777:80 eoepca/proc-comm-zoo:latest
 
 ```
 
-
-
-
 proc-comm-zoo-svc
 
 
