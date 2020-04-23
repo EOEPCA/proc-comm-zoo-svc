@@ -10,10 +10,10 @@ scripts/build.sh
 if [ "${TRAVIS}" == "true" ]
 then #send push
 	
-	docker tag ${LOCAL_SERVICE_NAME}:${buildTag} ${EOEPCA_ADES_ZOO}
+	docker tag ${LOCAL_IMAGE_NAME} ${EOEPCA_ADES_ZOO}
 	if [ "$?" -ne 0 ]
 	then
-		echo "docker tag ${LOCAL_DOCKERIMAGE}:${buildTag} --> ${EOEPCA_DOCKERIMAGE}:${buildTag} failed"
+		echo "docker tag ${LOCAL_IMAGE_NAME} --> ${EOEPCA_ADES_ZOO} failed"
 		exit 1
 	fi
 

@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
-#docker stop zoo
 
-# enviroments
-export DOCKER_ZOO='eoepca/proc-comm-zoo:latest'
+# export 
 export ZOO_BUILD_SERVICE='zoo_build_services'
 export ZOO_ZOOSERVICES='zooservices'
 
+if [ -z "${DOCKER_ZOO}" ]
+then
+  DOCKER_ZOO='eoepca/proc-comm-zoo:latest'
+fi
 
 if [ -z "${BUILDER_DOCKERIMAGE}" ]
 then

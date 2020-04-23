@@ -5,10 +5,6 @@ export RELEASETYPE=''
 #null definition
 export NULL='none'
 
-#internal DokerImage name
-export BUILDER_DOCKERIMAGE='eoepca/eoepca-build-cpp:1.0'
-
-
 #get branch name
 TRAVIS_BRANCH="${TRAVIS_BRANCH:-develop}"
 
@@ -37,6 +33,11 @@ then
   RELEASETYPE='develop'
 	echo 'Branch selected: develop' 
 fi
+
+
+#docker requirements
+export BUILDER_DOCKERIMAGE='eoepca/eoepca-build-cpp:1.0'
+export DOCKER_ZOO='eoepca/proc-comm-zoo:latest'
 
 #new definitions
 export TRAVIS_BUILD_NUMBER="${TRAVIS_BUILD_NUMBER:-0}"
