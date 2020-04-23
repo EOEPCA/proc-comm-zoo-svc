@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
 
-RELEASETYPE=''
-
-
-export SERVICE_NAME="template-service-cpp"
-export LOCAL_SERVICE_NAME="local_${SERVICE_NAME}"
+export RELEASETYPE=''
 
 #null definition
 export NULL='none'
 
 #internal DokerImage name
-export LOCAL_DOCKERIMAGE='eoepca/eoepca-build-cpp'
-#eoepca repository
-export EOEPCA_REPOSITORY='eoepca'
-#eoepca name
-export EOEPCA_IMAGE="eoepca-build-cpp"
+export BUILDER_DOCKERIMAGE='eoepca/eoepca-build-cpp:1.0'
+
 
 #get branch name
 TRAVIS_BRANCH="${TRAVIS_BRANCH:-develop}"
@@ -47,7 +40,18 @@ fi
 
 #new definitions
 export TRAVIS_BUILD_NUMBER="${TRAVIS_BUILD_NUMBER:-0}"
-export buildTag=${TRAVIS_NAME}${TRAVIS_BRANCH}_${TRAVIS_BUILD_NUMBER}
-export BUILDER_ENV_IMAGE="${BUILDER_ENV_IMAGE:-${NULL}}"
-export BUILDER_ENV_IMAGE_NEW_TAG="${BUILDER_ENV_IMAGE_NEW_TAG:-${NULL}}"
+
+#docker temp image name
+export LOCAL_IMAGE_NAME="eoepca-ades-wps:1.0"
+
+#eoepca repository
+export EOEPCA_REPOSITORY='eoepca'
+#eoepca name
+export EOEPCA_IMAGE="eoepca-ades-wps"
+#eoepca tag
+export EOEPCA_TAG="${TRAVIS_NAME}${TRAVIS_BRANCH}_${TRAVIS_BUILD_NUMBER}"
+#final image
+export EOEPCA_ADES_ZOO="${EOEPCA_REPOSITORY}/${EOEPCA_IMAGE}:${EOEPCA_TAG}"
+
+
 

@@ -6,33 +6,43 @@
 export DOCKER_ZOO='eoepca/proc-comm-zoo:latest'
 export ZOO_BUILD_SERVICE='zoo_build_services'
 export ZOO_ZOOSERVICES='zooservices'
-export LOCAL_DOCKERIMAGE='eoepca/eoepca-build-cpp:1.0'
-export CMAKERELEASE='Release'
-export EOEPCA_ZOO='eoepcaadeswps:1.0'
+
+
+if [ -z "${BUILDER_DOCKERIMAGE}" ]
+then
+  BUILDER_DOCKERIMAGE='eoepca/eoepca-build-cpp:1.0'
+fi
+
+if [ -z "${CMAKERELEASE}" ]
+then
+  CMAKERELEASE='Release'
+fi
+
+if [ -z "${LOCAL_IMAGE_NAME}" ]
+then
+  LOCAL_IMAGE_NAME='eoepca-ades-wps:1.0'
+fi
 
 # remove directories
 rm -fvR build ${ZOO_BUILD_SERVICE} ${ZOO_ZOOSERVICES}
 
 ls -ltr
 
-
-docker pull ${LOCAL_DOCKERIMAGE}
+docker pull ${BUILDER_DOCKERIMAGE}
 if [ $? -ne 0 ]
 then
-  echo "Can't pull the  Docker Image: ${LOCAL_DOCKERIMAGE}"
+  echo "Can't pull the Docker Image: ${BUILDER_DOCKERIMAGE}"
   exit 1
 fi
 
-
-
-docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} cmake -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" ..
+docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${BUILDER_DOCKERIMAGE} cmake -DCMAKE_BUILD_TYPE=${CMAKERELEASE} -G "CodeBlocks - Unix Makefiles" ..
 if [ $? -ne 0 ]
 then
   echo "CMAKE release ${CMAKERELEASE} failed"
   exit 2
 fi
 
-docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${LOCAL_DOCKERIMAGE} make eoepcaows  all
+docker run --rm -ti  -v $PWD:/project/ -w /project/build/  ${BUILDER_DOCKERIMAGE} make eoepcaows  all
 if [ $? -ne 0 ]
 then
   echo "Make failed"
@@ -93,10 +103,10 @@ then
 fi
 
 
-docker build --rm -t ${EOEPCA_ZOO} .
+docker build --rm -t ${LOCAL_IMAGE_NAME} .
 if [ $? -ne 0 ]
 then
-  echo "Build ${EOEPCA_ZOO} failed"
+  echo "Build ${LOCAL_IMAGE_NAME} failed"
   exit 2
 fi
 
