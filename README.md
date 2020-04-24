@@ -545,6 +545,78 @@ curl -s -L  "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=GetCap
 
 ```
 
+DescribeProcess to see the parameters
+
+```sh
+curl -s -L "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=w05232691f576bae9b5715986e98d0def32065477"
+```
+
+```xml
+<wps:ProcessDescriptions xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsDescribeProcess_response.xsd" service="WPS" version="1.0.0" xml:lang="en-US">
+  <ProcessDescription wps:processVersion="1.12" storeSupported="true" statusSupported="true">
+    <ows:Identifier>w05232691f576bae9b5715986e98d0def32065477</ows:Identifier>
+    <ows:Title>A sample App</ows:Title>
+    <ows:Abstract>Sample abstract</ows:Abstract>
+    <DataInputs>
+      <Input minOccurs="1" maxOccurs="0">
+        <ows:Identifier>input_reference</ows:Identifier>
+        <ows:Title>S2 references</ows:Title>
+        <ows:Abstract>S2 input reference as a comma separated list of catalogue references</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+          <ows:AnyValue/>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="1" maxOccurs="0">
+        <ows:Identifier>input_references_liv</ows:Identifier>
+        <ows:Title>S2 references</ows:Title>
+        <ows:Abstract>S2 input reference as a comma separated list of catalogue references</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+          <ows:AllowedValues>
+            <ows:Value>true</ows:Value>
+            <ows:Value>false</ows:Value>
+          </ows:AllowedValues>
+          <DefaultValue>false</DefaultValue>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="1" maxOccurs="1">
+        <ows:Identifier>SubsetBoundingBox</ows:Identifier>
+        <ows:Title>Subset Bounding Box for Unwrapping</ows:Title>
+        <ows:Abstract>Define the area of interest for the Phase Unwrapping processing                                    [lon_min,lat_min,lon_max,lat_max]                                </ows:Abstract>
+        <BoundingBoxData>
+          <Default>
+            <CRS>CRS = urn:ogc:def:crs:EPSG:6.6:4326</CRS>
+          </Default>
+        </BoundingBoxData>
+      </Input>
+      <Input minOccurs="1" maxOccurs="1" maximumMegabytes="22323">
+        <ows:Identifier>SubsetBoundingBox</ows:Identifier>
+        <ows:Title>Subset Bounding Box for Unwrapping</ows:Title>
+        <ows:Abstract>Define the area of interest for the Phase Unwrapping processing                                    [lon_min,lat_min,lon_max,lat_max]                                </ows:Abstract>
+        <ComplexData>
+          <Supported>
+            <Format/>
+          </Supported>
+        </ComplexData>
+      </Input>
+    </DataInputs>
+    <ProcessOutputs>
+      <Output>
+        <ows:Identifier>result_osd</ows:Identifier>
+        <ows:Title>OpenSearch Description to the Results</ows:Title>
+        <ows:Abstract>OpenSearch Description to the Results</ows:Abstract>
+        <ComplexOutput>
+          <Supported>
+            <Format/>
+          </Supported>
+        </ComplexOutput>
+      </Output>
+    </ProcessOutputs>
+  </ProcessDescription>
+</wps:ProcessDescriptions>
+```
+
 Now, to complete the tutorial, let's remove the process
 
 ```sh
