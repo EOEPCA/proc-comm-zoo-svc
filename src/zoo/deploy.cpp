@@ -323,7 +323,7 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
                         xml->writeAttribute("err", "4");
                         xml->writeAttribute("message",
                                             "Can't remove the service");
-                        xml->writeContent("not emoved");
+                        xml->writeContent("not removed");
                       } else {
                         xml->writeAttribute("err", "0");
                         xml->writeAttribute("message", "0");
