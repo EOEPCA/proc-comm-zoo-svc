@@ -690,6 +690,35 @@ curl -s -L  "http://localhost:7777/zoo/?service=WPS&version=1.0.0&request=GetCap
 ...
 ```
 
+The service can be removed simply by using the service identifier
+
+```sh
+curl -s -L "http://localhost:7777/zoo/?service=wps&version=1.0.0&request=Execute&identifier=eoepcaadesundeployprocess&dataInputs=applicationPackage=w05232691f576bae9b5715986e98d0def32065477;&ResponseDocument=unDeployResult@mimeType=application/xml"
+```
+
+```xml
+  <wps:ProcessOutputs>
+    <wps:Output>
+      <ows:Identifier>unDeployResult</ows:Identifier>
+      <ows:Title>Deploy Result</ows:Title>
+      <ows:Abstract>The server's response to undeploying a process.  A successful response will contain a summary of the removed process.</ows:Abstract>
+      <wps:Data>
+        <wps:ComplexData mimeType="application/xml" encoding="ISO-8859-1">
+          <result applicationPackageFile="">
+            <operations packageId="">
+              <operation processId="" processVersion="" version="" type="undeploy">
+                <wpsId>w05232691f576bae9b5715986e98d0def32065477</wpsId>
+                <status err="0" message="0">removed</status>
+              </operation>
+            </operations>
+          </result>
+        </wps:ComplexData>
+      </wps:Data>
+    </wps:Output>
+  </wps:ProcessOutputs>
+```
+
+
 ## Roadmap
 
 See the [open issues](https://github.com/EOEPCA/proc-comm-zoo-svc/issues) for a list of proposed features (and known issues).

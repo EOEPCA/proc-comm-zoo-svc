@@ -40,6 +40,11 @@ bool fileExist(const char* fileName) {
   return infile.good();
 }
 
+bool iequals(const std::string& a, const std::string& b) {
+  return std::equal(a.begin(), a.end(), b.begin(), b.end(),
+                    [](char a, char b) { return tolower(a) == tolower(b); });
+}
+
 int writeContent(const char* fileName, std::string_view content) {
   std::ofstream file(fileName);
   if (file.good()) {
@@ -113,6 +118,57 @@ DeployResults deploy(std::string_view path, std::string_view content) {
   return DeployResults::NONE;
 }
 
+int simpleRemove(std::string_view finalPath, std::string_view owsOri,
+                 maps*& conf, maps*& inputs, maps*& outputs) {
+  std::stringbuf strBuffer;
+  auto xml = std::make_unique<XmlWriteMemoryWrapper>();
+  xml->startDocument("", "", "");
+  xml->startElement("result");
+  xml->writeAttribute("applicationPackageFile", "");
+
+  xml->startElement("operations");
+  {
+    xml->writeAttribute("packageId", "");
+
+    xml->startElement("operation");
+    {
+      xml->writeAttribute("processId", "");
+      xml->writeAttribute("processVersion", "");
+      xml->writeAttribute("version", "");
+      xml->writeAttribute("type", "undeploy");
+
+      xml->startElement("wpsId");
+      { xml->writeContent(owsOri.data()); }
+      xml->endElement();
+
+      xml->startElement("status");
+      {
+        if (fileExist(finalPath.data()) && removeFile(finalPath.data())) {
+          xml->writeAttribute("err", "4");
+          xml->writeAttribute("message", "Can't remove the service");
+          xml->writeContent("not removed");
+        } else {
+          xml->writeAttribute("err", "0");
+          xml->writeAttribute("message", "0");
+          xml->writeContent("removed");
+        }
+      }
+      xml->endElement();
+    }
+    xml->endElement();
+  }
+  xml->endElement();
+
+  xml->endElement();
+  xml->endDocument();
+
+  xml->getBuffer(strBuffer);
+
+  setMapInMaps(outputs, "unDeployResult", "value", strBuffer.str().c_str());
+
+  return SERVICE_SUCCEEDED;
+}
+
 int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
   std::map<std::string, std::string> confEoepca;
   getT2ConfigurationFromZooMapConfig(conf, "eoepca", confEoepca);
@@ -121,7 +177,7 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
   getT2ConfigurationFromZooMapConfig(conf, "main", confMain);
 
   if (confMain["servicePath"].empty()) {
-    return setZooError(conf, "zoo servicePath empty()", "noApplicableCode");
+    return setZooError(conf, "zoo servicePath empty()", "NoApplicableCode");
   }
 
   if (*confMain["servicePath"].rbegin() != '/') {
@@ -135,12 +191,30 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
       getMapFromMaps(inputs, "applicationPackage", "value");
 
   if (!applicationPackageZooMap) {
-    return setZooError(conf, "applicationPackage empty()", "noApplicableCode");
+    return setZooError(conf, "applicationPackage empty()", "NoApplicableCode");
   }
 
   std::string owsOri(applicationPackageZooMap->value);
 
   try {
+    if (operation == Operation::UNDEPLOY) {
+      auto found = owsOri.find("://");
+      if (found == std::string::npos) {
+        if (owsOri == "eoepcaadesundeployprocess" || owsOri == "GetStatus" ||
+            owsOri == "eoepcaadesdeployprocess") {
+          std::string err("The service ");
+          err.append(owsOri).append(" cannot be removed");
+          throw std::runtime_error(err);
+        }
+
+        std::string finalPath = confMain["servicePath"];
+        finalPath.append(owsOri);
+        finalPath.append(".zcfg");
+
+        return simpleRemove(finalPath, owsOri, conf, inputs, outputs);
+      }
+    }
+
     std::string bufferOWSFile;
     auto ret = getFromWeb(bufferOWSFile, owsOri.c_str());
 
@@ -249,7 +323,7 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
                         xml->writeAttribute("err", "4");
                         xml->writeAttribute("message",
                                             "Can't remove the service");
-                        xml->writeContent("removed");
+                        xml->writeContent("not emoved");
                       } else {
                         xml->writeAttribute("err", "0");
                         xml->writeAttribute("message", "0");
@@ -303,10 +377,10 @@ int job(maps*& conf, maps*& inputs, maps*& outputs, Operation operation) {
     }
   } catch (std::runtime_error& err) {
     std::cerr << err.what();
-    return setZooError(conf, err.what(), "noApplicableCode");
+    return setZooError(conf, err.what(), "NoApplicableCode");
   } catch (...) {
     std::cerr << "Unexpected server error";
-    return setZooError(conf, "Unexpected server error", "noApplicableCode");
+    return setZooError(conf, "Unexpected server error", "NoApplicableCode");
   }
 
   return SERVICE_SUCCEEDED;
