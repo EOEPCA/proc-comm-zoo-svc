@@ -1,4 +1,8 @@
 
+execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/download3ty.sh
+        RESULT_VARIABLE result
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/3ty)
+
 if (ZOOBUILD)
 
     cmake_minimum_required(VERSION 2.8)
@@ -23,11 +27,11 @@ if (ZOOBUILD)
     #${LIBXML2_LIBRARIES}
 
     include_directories(includes)
-    include_directories(/var/lib64 /usr/local/include/t2wpsZoolib /opt/t2build/includes/ /usr/local/include/zoo . ./include
+    include_directories(/var/lib64 /usr/local/include/t2wpsZoolib /opt/t2build/includes/ /opt/zoo-project/zoo-project/zoo-kernel/ . ./include
             )
 
-    include_directories(build/3ty/proc-comm-lib-ows/proc-comm-lib-ows/includes)
-    include_directories(${CMAKE_CURRENT_BINARY_DIR}/3ty/proc-comm-lib-ows/proc-comm-lib-ows/includes)
+    include_directories(3ty/proc-comm-lib-ows-1.0/includes)
+#    include_directories(${CMAKE_CURRENT_BINARY_DIR}/3ty/proc-comm-lib-ows/proc-comm-lib-ows/includes)
 
 
     SET(LIB_SRC
@@ -45,7 +49,7 @@ if (ZOOBUILD)
     #
 
     install(TARGETS epcatransactional DESTINATION /work/zooservices/)
-#    install(FILES src/zoo/eoepcaadesdeployprocess.zcfg  src/zoo/eoepcaadesundeployprocess.zcfg DESTINATION /work/build/zoo_build_services/)
+    #    install(FILES src/zoo/eoepcaadesdeployprocess.zcfg  src/zoo/eoepcaadesundeployprocess.zcfg DESTINATION /work/build/zoo_build_services/)
 
 else ()
 
@@ -59,9 +63,9 @@ else ()
     find_package(CURL REQUIRED)
     include_directories(${CURL_INCLUDE_DIRS})
 
-    add_subdirectory(3ty/proc-comm-lib-ows)
+    add_subdirectory(3ty/proc-comm-lib-ows-1.0)
 
-    include_directories(${CMAKE_CURRENT_BINARY_DIR}/3ty/proc-comm-lib-ows/proc-comm-lib-ows/includes)
+    include_directories(3ty/proc-comm-lib-ows-1.0/includes)
     #include_directories(${PROC_COMM_ZOO_SVC_INCLUDE})
 
     include_directories(includes)
