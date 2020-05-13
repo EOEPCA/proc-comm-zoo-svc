@@ -32,7 +32,7 @@ if (ZOOBUILD)
             )
 
     include_directories(3ty/proc-comm-lib-ows-1.0/includes)
-#    include_directories(${CMAKE_CURRENT_BINARY_DIR}/3ty/proc-comm-lib-ows/proc-comm-lib-ows/includes)
+
 
 
     SET(LIB_SRC

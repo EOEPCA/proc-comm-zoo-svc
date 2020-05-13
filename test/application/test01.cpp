@@ -33,12 +33,12 @@ TEST(zooparser, 01_getFileFromInternet) {
 TEST(zooparser, 02_loadOwsLib) {
   auto libMac = std::make_unique<EOEPCA::EOEPCAows>(
       getBasePat() +
-      "/3ty/proc-comm-lib-ows/proc-comm-lib-ows-build/"
+      "/3ty/proc-comm-lib-ows-1.0/"
       "libeoepcaows.dylib");
 
   auto libLinux = std::make_unique<EOEPCA::EOEPCAows>(
       getBasePat() +
-      "/3ty/proc-comm-lib-ows/proc-comm-lib-ows-build/"
+      "/3ty/proc-comm-lib-ows-1.0/"
       "libeoepcaows.so");
 
   EXPECT_TRUE(libMac->IsValid() || libLinux->IsValid());
@@ -55,12 +55,12 @@ TEST(zooparser, 03_createContext) {
 
   auto lib = std::make_unique<EOEPCA::EOEPCAows>(
       getBasePat() +
-      "/3ty/proc-comm-lib-ows/proc-comm-lib-ows-build/libeoepcaows.dylib");
+      "/3ty/proc-comm-lib-ows-1.0/libeoepcaows.dylib");
 
   if (!lib->IsValid()) {
     lib = std::make_unique<EOEPCA::EOEPCAows>(
         getBasePat() +
-        "/3ty/proc-comm-lib-ows/proc-comm-lib-ows-build/libeoepcaows.so");
+        "/3ty/proc-comm-lib-ows-1.0/libeoepcaows.so");
   }
 
   std::unique_ptr<EOEPCA::OWS::OWSContext,
@@ -82,13 +82,13 @@ TEST(zooparser, 04_createContext) {
 
   auto lib = std::make_unique<EOEPCA::EOEPCAows>(
       getBasePat() +
-      "/3ty/proc-comm-lib-ows/proc-comm-lib-ows-build/"
+      "/3ty/proc-comm-lib-ows-1.0/"
       "libeoepcaows.dylib");
 
   if (!lib->IsValid()) {
     lib = std::make_unique<EOEPCA::EOEPCAows>(
         getBasePat() +
-        "/3ty/proc-comm-lib-ows/proc-comm-lib-ows-build/"
+        "/3ty/proc-comm-lib-ows-1.0/"
         "libeoepcaows.so");
   }
 
