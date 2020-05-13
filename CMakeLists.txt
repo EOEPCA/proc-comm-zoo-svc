@@ -1,7 +1,8 @@
 
+
 execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/download3ty.sh
         RESULT_VARIABLE result
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/3ty)
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 if (ZOOBUILD)
 
